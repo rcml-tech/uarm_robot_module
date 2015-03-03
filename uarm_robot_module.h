@@ -33,6 +33,7 @@ class UarmRobotModule : public RobotModule {
 	public:
 		UarmRobotModule();
 		const char *getUID();
+		void prepare(colorPrintf_t *colorPrintf_p, colorPrintfVA_t *colorPrintfVA_p);
 		int init();
 		FunctionData** getFunctions(int *count_functions);
 		AxisData** getAxis(int *count_axis);
