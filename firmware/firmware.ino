@@ -2,18 +2,11 @@
 #include <VarSpeedServo.h>
 #include <EEPROM.h>
 
-<<<<<<< HEAD
 VarSpeedServo servoL;
 VarSpeedServo servoR;
 VarSpeedServo servoRot;
 VarSpeedServo servoHandRot;
 VarSpeedServo servoHand;
-=======
-int  heightTemp  = 0, stretchTemp = 0, rotationTemp = 0, handRotTemp = 0;
-char stateMachine = 0, counter = 0;
-char dataBuf[8] = {0};
-byte rxBuf = 0;
->>>>>>> bea2b19c183c0fccc0dbb2e7aeadd60bfa027926
 
 UF_uArm uarm;
 
