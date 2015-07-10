@@ -181,9 +181,5 @@ void loop()
     }
     
   }
-<<<<<<< HEAD
   
-=======
-  uarm.gripperDetach();
->>>>>>> bea2b19c183c0fccc0dbb2e7aeadd60bfa027926
 }
