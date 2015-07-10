@@ -14,7 +14,6 @@ String msg;
 
 void setup() {
   Serial.begin(9600);
-<<<<<<< HEAD
   pinMode(BTN_D4,   INPUT);  digitalWrite(BTN_D4,   HIGH);
   pinMode(BTN_D7,   INPUT);  digitalWrite(BTN_D7,   HIGH);
   pinMode(BUZZER,   OUTPUT); digitalWrite(BUZZER,   LOW);
