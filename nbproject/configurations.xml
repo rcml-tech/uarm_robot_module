@@ -91,10 +91,27 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
+          <standard>10</standard>
+          <commandlineTool>g++</commandlineTool>
+          <incDir>
+            <pElem>../module_headers</pElem>
+            <pElem>../../simpleini</pElem>
+            <pElem>../../SerialClass</pElem>
+            <pElem>C:/Programs/boost_1_58_0</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
+          <standard>8</standard>
+          <incDir>
+            <pElem>../module_headers</pElem>
+            <pElem>../../simpleini</pElem>
+            <pElem>../../SerialClass</pElem>
+            <pElem>C:/Programs/boost_1_58_0</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
@@ -102,6 +119,16 @@
         <asmTool>
           <developmentMode>5</developmentMode>
         </asmTool>
+        <linkerTool>
+          <output>../../bin/robot_modules/uarm/uarm_module_rls.${CND_DLIB_EXT}</output>
+          <linkerAddLib>
+            <pElem>C:/Programs/boost_1_58_0/stage/lib</pElem>
+          </linkerAddLib>
+          <linkerLibItems>
+            <linkerLibLibItem>boost_system-mgw48-mt-1_58</linkerLibLibItem>
+            <linkerLibLibItem>boost_thread-mgw48-mt-1_58</linkerLibLibItem>
+          </linkerLibItems>
+        </linkerTool>
       </compileType>
       <item path="../../SerialClass/SerialClass.cpp" ex="false" tool="1" flavor2="0">
       </item>

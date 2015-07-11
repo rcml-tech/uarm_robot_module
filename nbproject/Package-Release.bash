@@ -13,8 +13,8 @@ CND_BUILDDIR=build
 CND_DLIB_EXT=dll
 NBTMPDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}/tmp-packaging
 TMPDIRNAME=tmp-packaging
-OUTPUT_PATH=${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuarm_robot_module.${CND_DLIB_EXT}
-OUTPUT_BASENAME=libuarm_robot_module.${CND_DLIB_EXT}
+OUTPUT_PATH=../../bin/robot_modules/uarm/uarm_module_rls.${CND_DLIB_EXT}
+OUTPUT_BASENAME=uarm_module_rls.${CND_DLIB_EXT}
 PACKAGE_TOP_DIR=libuarmrobotmodule.dll/
 
 # Functions

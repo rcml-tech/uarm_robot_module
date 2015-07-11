@@ -14,7 +14,7 @@ GREP=grep
 NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
-CC=gcc
+CC=g++
 CCC=g++
 CXX=g++
 FC=gfortran
@@ -53,25 +53,25 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=
+LDLIBSOPTIONS=-L/C/Programs/boost_1_58_0/stage/lib -lboost_system-mgw48-mt-1_58 -lboost_thread-mgw48-mt-1_58
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuarm_robot_module.${CND_DLIB_EXT}
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../bin/robot_modules/uarm/uarm_module_rls.${CND_DLIB_EXT}
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuarm_robot_module.${CND_DLIB_EXT}: ${OBJECTFILES}
-	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuarm_robot_module.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
+../../bin/robot_modules/uarm/uarm_module_rls.${CND_DLIB_EXT}: ${OBJECTFILES}
+	${MKDIR} -p ../../bin/robot_modules/uarm
+	${LINK.cc} -o ../../bin/robot_modules/uarm/uarm_module_rls.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
 
 ${OBJECTDIR}/_ext/1902510628/SerialClass.o: ../../SerialClass/SerialClass.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1902510628
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1902510628/SerialClass.o ../../SerialClass/SerialClass.cpp
+	$(COMPILE.cc) -O3 -Wall -I../module_headers -I../../simpleini -I../../SerialClass -I/C/Programs/boost_1_58_0 -std=c++11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1902510628/SerialClass.o ../../SerialClass/SerialClass.cpp
 
 ${OBJECTDIR}/uarm_robot_module.o: uarm_robot_module.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/uarm_robot_module.o uarm_robot_module.cpp
+	$(COMPILE.cc) -O3 -Wall -I../module_headers -I../../simpleini -I../../SerialClass -I/C/Programs/boost_1_58_0 -std=c++11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/uarm_robot_module.o uarm_robot_module.cpp
 
 # Subprojects
 .build-subprojects:
@@ -79,7 +79,7 @@ ${OBJECTDIR}/uarm_robot_module.o: uarm_robot_module.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuarm_robot_module.${CND_DLIB_EXT}
+	${RM} ../../bin/robot_modules/uarm/uarm_module_rls.${CND_DLIB_EXT}
 
 # Subprojects
 .clean-subprojects:
