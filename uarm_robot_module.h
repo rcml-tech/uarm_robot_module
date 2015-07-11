@@ -1,68 +1,70 @@
 #ifndef UARM_ROBOT_MODULE_H
 #define	UARM_ROBOT_MODULE_H
 
-class UarmRobot : public Robot {
-	private:
-#ifdef _DEBUG
-		bool checkingSerial;
-		unsigned int tid;
-		HANDLE thread_handle;
-		CRITICAL_SECTION cheking_mutex;
-#endif
-		Serial *SP;
+struct MainAngles {
+    double right;
+    double left;
+    double rot;
+    MainAngles() : right(0), left(0), rot(0) {};
+    MainAngles(double right, double left, double rot) : right(right), left(left), rot(rot) {};
+};
 
-    public: 
-		bool is_aviable;
-		UarmRobot::UarmRobot(Serial *SP) : is_aviable(true), SP(SP) {}
-		FunctionResult* executeFunction(regval command_index, regval *args);
-		void axisControl(regval axis_index, regval value);
-#ifdef _DEBUG
-		void startCheckingSerial();
-		void checkSerial();
-#endif
+class UarmRobot : public Robot {
+    Serial *SP;
+    colorPrintfRobotVA_t *colorPrintf_p;
+
+    void colorPrintf(ConsoleColor colors, const char *mask, ...);
+    MainAngles calculate_angles(double x, double y, double z);
+
+    public:
+        bool is_aviable;
+        UarmRobot(Serial *SP) : is_aviable(true), SP(SP) {};
+        void prepare(colorPrintfRobot_t *colorPrintf_p, colorPrintfRobotVA_t *colorPrintfVA_p);
+        FunctionResult* executeFunction(system_value command_index, void **args);
+        void axisControl(system_value axis_index, variable_value value) {};
         ~UarmRobot();
 };
 typedef std::vector<UarmRobot*> v_connections;
 typedef v_connections::iterator v_connections_i;
 
 class UarmRobotModule : public RobotModule {
-	v_connections aviable_connections;
-	FunctionData **robot_functions;
-	AxisData **robot_axis;
+    boost::mutex connections_mutex;
 
-	public:
-		UarmRobotModule();
-		const char *getUID();
-		void prepare(colorPrintf_t *colorPrintf_p, colorPrintfVA_t *colorPrintfVA_p);
-		int init();
-		FunctionData** getFunctions(int *count_functions);
-		AxisData** getAxis(int *count_axis);
-		Robot* robotRequire();
-		void robotFree(Robot *robot);
-		void final();
-		void destroy();
-		~UarmRobotModule() {};
-};
+    v_connections aviable_connections;
+    FunctionData **robot_functions;
+    AxisData **robot_axis;
 
-#define ADD_ROBOT_FUNCTION(FUNCTION_NAME, COUNT_PARAMS, GIVE_EXCEPTION) \
-	robot_functions[function_id] = new FunctionData; \
-	robot_functions[function_id]->command_index = function_id + 1; \
-	robot_functions[function_id]->count_params = COUNT_PARAMS; \
-	robot_functions[function_id]->give_exception = GIVE_EXCEPTION; \
-	robot_functions[function_id]->name = FUNCTION_NAME; \
-	++function_id;
+    colorPrintfModuleVA_t *colorPrintf_p;
 
-#define ADD_ROBOT_AXIS(AXIS_NAME, UPPER_VALUE, LOWER_VALUE) \
-	robot_axis[axis_id] = new AxisData; \
-	robot_axis[axis_id]->axis_index = axis_id + 1; \
-	robot_axis[axis_id]->upper_value = UPPER_VALUE; \
-	robot_axis[axis_id]->lower_value = LOWER_VALUE; \
-	robot_axis[axis_id]->name = AXIS_NAME; \
-	++axis_id;
+    public:
+        UarmRobotModule();
+        const char *getUID();
+        void prepare(colorPrintfModule_t *colorPrintf_p, colorPrintfModuleVA_t *colorPrintfVA_p);
 
-union WordToBytes {
-    short int i;
-	char c[2];
+        //compiler only
+        FunctionData** getFunctions(unsigned int *count_functions);
+        AxisData** getAxis(unsigned int *count_axis);
+        void *writePC(unsigned int *buffer_length);
+
+        //intepreter - devices
+        int init();
+        Robot* robotRequire();
+        void robotFree(Robot *robot);
+        void final();
+
+        //intepreter - program & lib
+        void readPC(void *buffer, unsigned int buffer_length) {};
+
+        //intepreter - program
+        int startProgram(int uniq_index);
+        int endProgram(int uniq_index);
+
+        //destructor
+        void destroy();
+        ~UarmRobotModule() {};
+
+    protected:
+        void colorPrintf(ConsoleColor colors, const char *mask, ...);
 };
 
 #endif	/* SERVO_ROBOT_MODULE_H */

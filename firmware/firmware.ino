@@ -24,161 +24,105 @@ void setup() {
   servoRot.attach(SERVO_ROT, D090M_SERVO_MIN_PUL, D090M_SERVO_MAX_PUL);
   servoHand.attach(SERVO_HAND, D009A_SERVO_MIN_PUL, D009A_SERVO_MAX_PUL);
   servoHandRot.attach(SERVO_HAND_ROT, D009A_SERVO_MIN_PUL, D009A_SERVO_MAX_PUL);
+  
   servoHand.write(HAND_ANGLE_OPEN, 0, true);
   servoHand.detach();
 }
 
-void loop()
-{
-  
-  while(Serial.available() > 0)
-  { 
+void readServo(int servo_pin, int min_pul, int max_pul) {
+  Serial.println(
+    map(
+      constrain(uarm.readAngle(servo_pin), SERVO_MIN, SERVO_MAX),
+      SERVO_MIN,
+      SERVO_MAX,
+      min_pul,
+      max_pul
+    )
+  );
+}
+
+void loop() {
+  while (Serial.available()) { 
     char now = Serial.read();
-    if(now == ';')
-    {
-      switch(msg.charAt(0))
-      {
+    if(now != ';') {
+      msg += now;
+    } else {
+      switch (msg[0]) {
         case 'T':
           uarm.alert(1, 1000, 0);
-          while(1)
-          {
-            if(!digitalRead(BTN_D4))
-            {
+          bool isAttached = true;
+          while (1) {
+            if (!digitalRead(BTN_D4)) {
               uarm.alert(2, 250, 250);
               delay(3000);
               
-              if(servoL.attached() && servoR.attached() && servoRot.attached() && servoHandRot.attached())
-              {
+              if (isAttached) {
+                isAttached = false;
                 servoL.detach();
                 servoR.detach();
                 servoRot.detach();
                 servoHandRot.detach();
-              }
-              else
-              {
+              } else {
                 servoL.attach(SERVO_L, D090M_SERVO_MIN_PUL, D090M_SERVO_MAX_PUL);
                 servoR.attach(SERVO_R, D090M_SERVO_MIN_PUL, D090M_SERVO_MAX_PUL);
                 servoRot.attach(SERVO_ROT, D090M_SERVO_MIN_PUL, D090M_SERVO_MAX_PUL);
-                servoHand.attach(SERVO_HAND, D009A_SERVO_MIN_PUL, D009A_SERVO_MAX_PUL);
                 servoHandRot.attach(SERVO_HAND_ROT, D009A_SERVO_MIN_PUL, D009A_SERVO_MAX_PUL);
-                servoHand.write(HAND_ANGLE_OPEN, 0, true);
-                servoHand.detach();
                 break;
               }
             }
 
-            if(!digitalRead(BTN_D7))
-            {
-              delay(500);
-              Serial.print("angle for ROTATION - ");
-              Serial.println(
-                              map(
-                                constrain(uarm.readAngle(SERVO_ROT), SERVO_MIN, SERVO_MAX),
-                                SERVO_MIN,
-                                SERVO_MAX,
-                                D090M_SERVO_MIN_PUL, 
-                                D090M_SERVO_MAX_PUL
-                                )
-                            );
-              Serial.print("angle for L - ");
-              Serial.println(
-                              map(
-                                constrain(uarm.readAngle(SERVO_L), SERVO_MIN, SERVO_MAX),
-                                SERVO_MIN,
-                                SERVO_MAX,
-                                D090M_SERVO_MIN_PUL,
-                                D090M_SERVO_MAX_PUL
-                                )
-                            );
-              Serial.print("angle for R - ");
-              Serial.println(
-                              map(
-                                constrain(uarm.readAngle(SERVO_R), SERVO_MIN, SERVO_MAX),
-                                SERVO_MIN,
-                                SERVO_MAX,
-                                D090M_SERVO_MIN_PUL,
-                                D090M_SERVO_MAX_PUL
-                                )
-                            );
-              Serial.print("angle for HAND ROTATION - ");
-              Serial.println(
-                              map(
-                                constrain(uarm.readAngle(SERVO_HAND_ROT), SERVO_MIN, SERVO_MAX),
-                                SERVO_MIN,
-                                SERVO_MAX,
-                                D009A_SERVO_MIN_PUL,
-                                D009A_SERVO_MAX_PUL
-                                )
-                            );
-              Serial.println("");
-            }
-    
-//            if(!digitalRead(BTN_D7))
-//            {
-//              delay(500);
-//              Serial.print("angle for ROTATION - ");
-//              Serial.println(uarm.readAngle(SERVO_ROT), DEC);
-//              Serial.print("angle for L - ");
-//              Serial.println(uarm.readAngle(SERVO_L), DEC);
-//              Serial.print("angle for R - ");
-//              Serial.println(uarm.readAngle(SERVO_R), DEC);
-//              Serial.print("angle for HAND ROTATION - ");
-//              Serial.println(uarm.readAngle(SERVO_HAND_ROT), DEC);
-//              Serial.println("");
-//            }
+            if (!isAttached) {
+              if(!digitalRead(BTN_D7)) {
+                delay(500);
+                Serial.print("angle for ROTATION - ");
+                readServo(SERVO_ROT, D090M_SERVO_MIN_PUL, D090M_SERVO_MAX_PUL);
+                
+                Serial.print("angle for L - ");
+                readServo(SERVO_L, D090M_SERVO_MIN_PUL, D090M_SERVO_MAX_PUL);
               
+                Serial.print("angle for R - ");
+                readServo(SERVO_R, D090M_SERVO_MIN_PUL, D090M_SERVO_MAX_PUL);
+
+                Serial.print("angle for HAND ROTATION - ");
+                readServo(SERVO_HAND_ROT, D090M_SERVO_MIN_PUL, D090M_SERVO_MAX_PUL);
+                Serial.println("");
+                Serial.print(";");
+              }
+            }
           }
-        break;
+          break;
         case 'G':
-          if(msg.charAt(1) == '1')
-          {
+          if (msg[1] == '1') {
             uarm.gripperCatch();
-          }
-          else
-          {
+          } else {
             uarm.gripperRelease();
             uarm.gripperDirectDetach();
           }
-        break;
+          break;
         case 'M':
           byte count = 0;
           String note = "";
           unsigned int mass[8];
+          
           int MSGlength = msg.length() - 1;
-          for(int i = 1; i <= MSGlength; i++)
-          {
-            if( (msg.charAt(i) >= '0') && (msg.charAt(i) <= '9') )
-            {
-              note += msg.charAt(i);
+          for(int i = 1; i <= MSGlength; i++) {
+            if ((msg[i] >= '0') && (msg[i] <= '9')) {
+              note += msg[i];
             }
-            if( (msg.charAt(i) == ',') || (i == MSGlength) )
-            {
+            if ((msg[i] == ',') || (i == MSGlength)) {
               mass[count] = note.toInt();
               count++;
               note = "";
             }
           }
 
-          for(byte a = 0; a < 8; a++)
-          {
-            Serial.print(mass[a]);
-            Serial.print(" ");
-          }
-          Serial.println("");
-          
-          servoRot.write(mass[0],mass[1]);
-          servoL.write(mass[2],mass[3]);
-          servoR.write(mass[4],mass[5]);
-          servoHandRot.write(mass[6],mass[7]);
-        break;
+          servoRot.write(mass[0], mass[1]);
+          servoL.write(mass[2], mass[3]);
+          servoR.write(mass[4], mass[5]);
+          servoHandRot.write(mass[6], mass[7]);
+          break;
       }
       msg = "";
     }
-    else
-    {
-      msg += now;
-    }
-    
   }
-  
 }
