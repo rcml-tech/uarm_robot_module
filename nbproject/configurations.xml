@@ -5,12 +5,14 @@
                    displayName="Исходные файлы"
                    projectFiles="true">
       <itemPath>../../SerialClass/SerialClass.cpp</itemPath>
+      <itemPath>../rcml_compiler/error.h</itemPath>
       <itemPath>uarm_robot_module.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Файлы заголовков"
                    projectFiles="true">
       <itemPath>../../SerialClass/SerialClass.h</itemPath>
+      <itemPath>../rcml_compiler/error.cpp</itemPath>
       <itemPath>../module_headers/module.h</itemPath>
       <itemPath>../module_headers/robot_module.h</itemPath>
       <itemPath>uarm_robot_module.h</itemPath>
@@ -44,20 +46,28 @@
           <standard>10</standard>
           <commandlineTool>g++</commandlineTool>
           <incDir>
+            <pElem>C:/Programs/boost_1_58_0</pElem>
             <pElem>../module_headers</pElem>
+            <pElem>../rcml_compiler</pElem>
             <pElem>../../simpleini</pElem>
             <pElem>../../SerialClass</pElem>
-            <pElem>C:/Programs/boost_1_58_0</pElem>
           </incDir>
+          <preprocessorList>
+            <Elem>IS_MODULE</Elem>
+          </preprocessorList>
         </cTool>
         <ccTool>
           <standard>8</standard>
           <incDir>
+            <pElem>C:/Programs/boost_1_58_0</pElem>
             <pElem>../module_headers</pElem>
+            <pElem>../rcml_compiler</pElem>
             <pElem>../../simpleini</pElem>
             <pElem>../../SerialClass</pElem>
-            <pElem>C:/Programs/boost_1_58_0</pElem>
           </incDir>
+          <preprocessorList>
+            <Elem>IS_MODULE</Elem>
+          </preprocessorList>
         </ccTool>
         <linkerTool>
           <output>../../bin/robot_modules/uarm/uarm_module.${CND_DLIB_EXT}</output>
@@ -77,6 +87,10 @@
       <item path="../module_headers/module.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../module_headers/robot_module.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../rcml_compiler/error.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../rcml_compiler/error.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="uarm_robot_module.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -137,6 +151,10 @@
       <item path="../module_headers/module.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../module_headers/robot_module.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../rcml_compiler/error.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../rcml_compiler/error.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="uarm_robot_module.cpp" ex="false" tool="1" flavor2="0">
       </item>

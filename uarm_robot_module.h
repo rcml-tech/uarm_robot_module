@@ -11,14 +11,15 @@ struct MainAngles {
 
 class UarmRobot : public Robot {
     Serial *SP;
+    bool is_demo;
     colorPrintfRobotVA_t *colorPrintf_p;
 
     void colorPrintf(ConsoleColor colors, const char *mask, ...);
-    MainAngles calculate_angles(double x, double y, double z);
+    MainAngles *calculate_angles(double x, double y, double z);
 
     public:
         bool is_aviable;
-        UarmRobot(Serial *SP) : is_aviable(true), SP(SP) {};
+        UarmRobot(Serial *SP, bool is_demo) : SP(SP), is_demo(is_demo), is_aviable(true) {};
         void prepare(colorPrintfRobot_t *colorPrintf_p, colorPrintfRobotVA_t *colorPrintfVA_p);
         FunctionResult* executeFunction(system_value command_index, void **args);
         void axisControl(system_value axis_index, variable_value value) {};
@@ -35,6 +36,8 @@ class UarmRobotModule : public RobotModule {
     AxisData **robot_axis;
 
     colorPrintfModuleVA_t *colorPrintf_p;
+
+    bool is_demo;
 
     public:
         UarmRobotModule();

@@ -48,7 +48,7 @@ void loop() {
       msg += now;
     } else {
       switch (msg[0]) {
-        case 'T':
+        case 'T': {
           uarm.alert(1, 1000, 0);
           bool isAttached = true;
           while (1) {
@@ -63,6 +63,7 @@ void loop() {
                 servoRot.detach();
                 servoHandRot.detach();
               } else {
+                Serial.print(";");
                 servoL.attach(SERVO_L, D090M_SERVO_MIN_PUL, D090M_SERVO_MAX_PUL);
                 servoR.attach(SERVO_R, D090M_SERVO_MIN_PUL, D090M_SERVO_MAX_PUL);
                 servoRot.attach(SERVO_ROT, D090M_SERVO_MIN_PUL, D090M_SERVO_MAX_PUL);
@@ -72,26 +73,27 @@ void loop() {
             }
 
             if (!isAttached) {
-              if(!digitalRead(BTN_D7)) {
+              if (!digitalRead(BTN_D7)) {
                 delay(500);
-                Serial.print("angle for ROTATION - ");
+                Serial.print("SERVO_ROT - ");
                 readServo(SERVO_ROT, D090M_SERVO_MIN_PUL, D090M_SERVO_MAX_PUL);
                 
-                Serial.print("angle for L - ");
+                Serial.print("SERVO_LEFT - ");
                 readServo(SERVO_L, D090M_SERVO_MIN_PUL, D090M_SERVO_MAX_PUL);
               
-                Serial.print("angle for R - ");
+                Serial.print("SERVO_RIGHT - ");
                 readServo(SERVO_R, D090M_SERVO_MIN_PUL, D090M_SERVO_MAX_PUL);
 
-                Serial.print("angle for HAND ROTATION - ");
-                readServo(SERVO_HAND_ROT, D090M_SERVO_MIN_PUL, D090M_SERVO_MAX_PUL);
+                Serial.print("SERVO_HAND_ROT - ");
+                readServo(SERVO_HAND_ROT, D009A_SERVO_MIN_PUL, D009A_SERVO_MAX_PUL);
                 Serial.println("");
-                Serial.print(";");
+                Serial.print("|");
               }
             }
           }
           break;
-        case 'G':
+        }
+        case 'G': {
           if (msg[1] == '1') {
             uarm.gripperCatch();
           } else {
@@ -99,13 +101,14 @@ void loop() {
             uarm.gripperDirectDetach();
           }
           break;
-        case 'M':
+        }
+        case 'M': {
           byte count = 0;
           String note = "";
           unsigned int mass[8];
           
           int MSGlength = msg.length() - 1;
-          for(int i = 1; i <= MSGlength; i++) {
+          for (int i = 1; i <= MSGlength; i++) {
             if ((msg[i] >= '0') && (msg[i] <= '9')) {
               note += msg[i];
             }
@@ -121,6 +124,7 @@ void loop() {
           servoR.write(mass[4], mass[5]);
           servoHandRot.write(mass[6], mass[7]);
           break;
+        }
       }
       msg = "";
     }
