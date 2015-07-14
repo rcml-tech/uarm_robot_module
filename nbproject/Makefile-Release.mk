@@ -67,17 +67,17 @@ LDLIBSOPTIONS=-L/C/Programs/boost_1_58_0/stage/lib -lboost_system-mgw48-mt-1_58 
 ${OBJECTDIR}/_ext/1902510628/SerialClass.o: ../../SerialClass/SerialClass.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1902510628
 	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -Wall -I../module_headers -I../../simpleini -I../../SerialClass -I/C/Programs/boost_1_58_0 -std=c++11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1902510628/SerialClass.o ../../SerialClass/SerialClass.cpp
+	$(COMPILE.cc) -O3 -Wall -DIS_MODULE -I/C/Programs/boost_1_58_0 -I../module_headers -I../rcml_compiler -I../../simpleini -I../../SerialClass -std=c++11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1902510628/SerialClass.o ../../SerialClass/SerialClass.cpp
 
 ${OBJECTDIR}/_ext/1419000225/error.o: ../rcml_compiler/error.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1419000225
 	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -Wall -I../module_headers -I../../simpleini -I../../SerialClass -I/C/Programs/boost_1_58_0 -std=c++11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1419000225/error.o ../rcml_compiler/error.cpp
+	$(COMPILE.cc) -O3 -Wall -DIS_MODULE -I/C/Programs/boost_1_58_0 -I../module_headers -I../rcml_compiler -I../../simpleini -I../../SerialClass -std=c++11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1419000225/error.o ../rcml_compiler/error.cpp
 
 ${OBJECTDIR}/uarm_robot_module.o: uarm_robot_module.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -Wall -I../module_headers -I../../simpleini -I../../SerialClass -I/C/Programs/boost_1_58_0 -std=c++11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/uarm_robot_module.o uarm_robot_module.cpp
+	$(COMPILE.cc) -O3 -Wall -DIS_MODULE -I/C/Programs/boost_1_58_0 -I../module_headers -I../rcml_compiler -I../../simpleini -I../../SerialClass -std=c++11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/uarm_robot_module.o uarm_robot_module.cpp
 
 # Subprojects
 .build-subprojects:

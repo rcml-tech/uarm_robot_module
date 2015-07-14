@@ -52,6 +52,11 @@ EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 #define ANGLE_RIGHT_MIN_MAP  83.108139f
 #define ANGLE_RIGHT_MAX_MAP  132.698940f
 
+#define CONSTR_SERVO_LEFT_TOP 2070
+#define CONSTR_SERVO_LEFT_SPEC 1075
+#define CONSTR_SERVO_RIGHT_DOWN 555
+#define CONSTR_SERVO_RIGHT_SPEC 1075
+
 #define ADD_ROBOT_AXIS(AXIS_NAME, UPPER_VALUE, LOWER_VALUE) \
 	robot_axis[axis_id] = new AxisData; \
 	robot_axis[axis_id]->axis_index = axis_id + 1; \
@@ -398,49 +403,100 @@ FunctionResult* UarmRobot::executeFunction(system_value command_index, void **ar
 
                 MainAngles *ma = calculate_angles(*x_pos, *y_pos, *z_pos);
 
+                Error *ge = new Error();
+
                 try {
                     checkMinMax(ma->rot, ANGLE_ROT_MIN, ANGLE_ROT_MAX);
                 } catch (Error *e) {
-                    throw new Error(e, "Check failed for calculated angle ROT: %f", ma->rot);
+                    ge->append(new Error(e, "Check failed for calculated angle ROT: %f", ma->rot));
                 }
                 variable_value servo_rot = round(map(ma->rot, ANGLE_ROT_MIN, ANGLE_ROT_MAX, D150A_SERVO_MIN_PUL, D150A_SERVO_MAX_PUL));
 
-                try {
+                /*try {
                     checkMinMax(ma->left, ANGLE_SERVO_MIN, ANGLE_SERVO_MAX);
                 } catch (Error *e) {
-                    throw new Error(e, "Check failed for calculated angle LEFT: %f", ma->left);
-                }
+                    ge->append(new Error(e, "Check failed for calculated angle LEFT: %f", ma->left));
+                }*/
                 variable_value servo_left = round(map(ma->left, ANGLE_LEFT_MIN_MAP, ANGLE_LEFT_MAX_MAP, D150A_SERVO_MIN_PUL, D150A_SERVO_MAX_PUL));
 
-                try {
+                /*try {
                     checkMinMax(ma->right, ANGLE_SERVO_MIN, ANGLE_SERVO_MAX);
                 } catch (Error *e) {
-                    throw new Error(e, "Check failed for calculated angle RIGHT: %f", ma->right);
-                }
+                    ge->append(new Error(e, "Check failed for calculated angle RIGHT: %f", ma->right));
+                }*/
                 variable_value servo_right = round(map(ma->right, ANGLE_RIGHT_MIN_MAP, ANGLE_RIGHT_MAX_MAP, D150A_SERVO_MIN_PUL, D150A_SERVO_MAX_PUL));
 
                 try {
                     checkMinMax(*angle_z, ANGLE_ROT_MIN, ANGLE_ROT_MAX);
                 } catch (Error *e) {
-                    throw new Error(e, "Check failed for angle HAND: %f", *angle_z);
+                    ge->append(new Error(e, "Check failed for angle HAND: %f", *angle_z));
                 }
                 variable_value servo_hand_rot = round(map(*angle_z, ANGLE_ROT_MIN, ANGLE_ROT_MAX, D009A_SERVO_MIN_PUL, D009A_SERVO_MAX_PUL));
 
-                check150A_ServoMinMax(servo_rot, "ROT");
-                check150A_ServoMinMax(servo_left, "LEFT");
-                check150A_ServoMinMax(servo_right, "RIGHT");
-                check009A_ServoMinMax(servo_hand_rot, "HAND");
+                try {
+                    check150A_ServoMinMax(servo_rot, "ROT");
+                } catch (Error *e) {
+                    ge->append(e);
+                }
+                try {
+                    check150A_ServoMinMax(servo_left, "LEFT");
+                } catch (Error *e) {
+                    ge->append(e);
+                }
+                try {
+                    check150A_ServoMinMax(servo_right, "RIGHT");
+                } catch (Error *e) {
+                    ge->append(e);
+                }
+                try {
+                    check009A_ServoMinMax(servo_hand_rot, "HAND");
+                } catch (Error *e) {
+                    ge->append(e);
+                }
 
                 //special checks
 
+                if (servo_left > CONSTR_SERVO_LEFT_TOP) {
+                    ge->append(new Error("The TOP cechanical constraint for servo: LEFT!"));
+                }
+
+                variable_value invert_servo_left = CONSTR_SERVO_LEFT_TOP - servo_left;
+
+                if (
+                    (invert_servo_left - servo_right)
+                    >
+                    (
+                        (CONSTR_SERVO_LEFT_TOP - CONSTR_SERVO_LEFT_SPEC)
+                        -
+                        CONSTR_SERVO_RIGHT_DOWN
+                    )
+                ) {
+                    ge->append(new Error("Distance between servos is too big!"));
+                }
+
+                if (servo_left > CONSTR_SERVO_LEFT_SPEC) {
+                    if (servo_left < CONSTR_SERVO_RIGHT_DOWN) {
+                        ge->append(new Error("The DOWN mechanical constraint for servo: RIGHT!"));
+                    }
+                }
+
+                if (
+                        (servo_right - CONSTR_SERVO_RIGHT_DOWN - invert_servo_left)
+                        < (CONSTR_SERVO_RIGHT_SPEC - CONSTR_SERVO_RIGHT_DOWN)
+                ) {
+                    ge->append(new Error("Distance between servos is too small!"));
+                }
+
+                ge->checkSelf();
+
                 str_buf += variableToString(servo_rot);
-                str_buf += ",15,";
+                str_buf += ",5,";
                 str_buf += variableToString(servo_left);
-                str_buf += ",15,";
+                str_buf += ",5,";
                 str_buf += variableToString(servo_right);
-                str_buf += ",15,";
+                str_buf += ",5,";
                 str_buf += variableToString(servo_hand_rot);
-                str_buf += ",15";
+                str_buf += ",5";
 
 
                 break;

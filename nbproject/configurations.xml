@@ -109,22 +109,30 @@
           <standard>10</standard>
           <commandlineTool>g++</commandlineTool>
           <incDir>
+            <pElem>C:/Programs/boost_1_58_0</pElem>
             <pElem>../module_headers</pElem>
+            <pElem>../rcml_compiler</pElem>
             <pElem>../../simpleini</pElem>
             <pElem>../../SerialClass</pElem>
-            <pElem>C:/Programs/boost_1_58_0</pElem>
           </incDir>
+          <preprocessorList>
+            <Elem>IS_MODULE</Elem>
+          </preprocessorList>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
           <developmentMode>6</developmentMode>
           <standard>8</standard>
           <incDir>
+            <pElem>C:/Programs/boost_1_58_0</pElem>
             <pElem>../module_headers</pElem>
+            <pElem>../rcml_compiler</pElem>
             <pElem>../../simpleini</pElem>
             <pElem>../../SerialClass</pElem>
-            <pElem>C:/Programs/boost_1_58_0</pElem>
           </incDir>
+          <preprocessorList>
+            <Elem>IS_MODULE</Elem>
+          </preprocessorList>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
