@@ -99,7 +99,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\module_robot_uarm_api\UArmForCSharp.csproj">
+    <ProjectReference Include="..\module_robot_uarm_api\UArmForCSharp\UArmForCSharp.csproj">
       <Project>{92f8467f-0e90-4640-9ba2-4c0520832461}</Project>
     </ProjectReference>
   </ItemGroup>
