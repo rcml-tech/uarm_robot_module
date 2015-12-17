@@ -27,8 +27,8 @@ std::string CUtils::getIniValueStr(std::string section_name,
                                    std::string key_name) {
   const char* res(m_Ini.GetValue(section_name.c_str(), key_name.c_str(), NULL));
   if (!res) {
-    printf("Not specified value for \"%s\" in section \"%s\"!\n", key_name,
-           section_name);
+    printf("Not specified value for \"%s\" in section \"%s\"!\n", key_name.c_str(),
+           section_name.c_str());
     throw std::exception();
   }
 

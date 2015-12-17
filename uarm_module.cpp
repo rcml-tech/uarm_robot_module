@@ -262,7 +262,7 @@ CUarmRobot* CUarmRobotModule::FindRobot(Robot* robot /*= NULL*/,
   try {
     EnterCriticalSection(&m_Cs);
     for (CAvalibleRobotsList::iterator i(m_avalible_robots.begin());
-         i != m_avalible_robots.end(); i++) {
+         i != m_avalible_robots.end(); ++i) {
       bool found_avalible(!robot && (*i)->IsAvalible() == avalible);
       bool found_robot(robot && (*i) == robot);
 
@@ -293,7 +293,7 @@ void CUarmRobotModule::final() {
   try {
     EnterCriticalSection(&m_Cs);
     for (CAvalibleRobotsList::iterator i(m_avalible_robots.begin());
-         i != m_avalible_robots.end(); i++) {
+         i != m_avalible_robots.end(); ++i) {
       (*i)->OnRobotFree();
       delete (*i);
     }
