@@ -1,5 +1,6 @@
 #include "Stdafx.h"
 
+#include "build_number.h"
 #include "uarm_module.h"
 #include <string>
 
@@ -21,9 +22,9 @@ CUarmRobotModule::CUarmRobotModule()
   CreateAxis();
 
   m_ModuleInfo.uid = "UIID";
-  m_ModuleInfo.digest = "digest";
+  m_ModuleInfo.digest = NULL;
   m_ModuleInfo.mode = ModuleInfo::PROD;
-  m_ModuleInfo.version = 1;
+  m_ModuleInfo.version = BUILD_NUMBER;
 }
 
 CUarmRobotModule* CUarmRobotModule::CreateModule() {
