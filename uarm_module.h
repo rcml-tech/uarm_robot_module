@@ -8,8 +8,8 @@
 #include "Stdafx.h"
 
 #include <stdio.h>
-#include "current\module.h"
-#include "current\robot_module.h"
+#include "module.h"
+#include "robot_module.h"
 #include <list>
 
 #include <vcclr.h>
