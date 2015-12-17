@@ -1,6 +1,6 @@
 
 #ifndef UARM_ROBOT_MODULE_H
-#define	UARM_ROBOT_MODULE_H
+#define UARM_ROBOT_MODULE_H
 #endif
 
 #pragma once
@@ -19,124 +19,101 @@
 class CUarmRobot;
 typedef std::list<CUarmRobot*> CAvalibleRobotsList;
 
+class CUarmRobotModule : public RobotModule {
+ public:
+  const static unsigned int COUNT_FUNCTIONS = 12;
+  const static unsigned int COUNT_AXIS = 6;
+  const static unsigned int LOCKED_IDX = 5;
 
-class CUarmRobotModule : public RobotModule
-{
+ protected:
+  CRITICAL_SECTION m_Cs;
 
-public:
-	const static unsigned int COUNT_FUNCTIONS = 12;
-	const static unsigned int COUNT_AXIS = 6;
-	const static unsigned int LOCKED_IDX = 5;
+  colorPrintfModuleVA_t* m_colorPrintf_p;
 
-protected:
-	CRITICAL_SECTION m_Cs;
+  ModuleInfo m_ModuleInfo;
 
-	colorPrintfModuleVA_t* m_colorPrintf_p;
+  FunctionData** m_robot_functions;
+  AxisData** m_robot_axis;
 
+  CAvalibleRobotsList m_avalible_robots;
 
-	ModuleInfo m_ModuleInfo;
+  bool m_Debug;
 
-	FunctionData** m_robot_functions;
-	AxisData** m_robot_axis;
+  CUarmRobotModule();
 
-	CAvalibleRobotsList m_avalible_robots;
+  void CreateFuntions();
+  void CreateAxis();
 
-	bool m_Debug;
+  CUarmRobot* FindRobot(Robot* robot = NULL, bool avalible = true);
 
-	CUarmRobotModule();
+ public:
+  static CUarmRobotModule* CreateModule();
 
-	void CreateFuntions();
-	void CreateAxis();
+  // init
+  virtual const struct ModuleInfo& getModuleInfo() override;
+  virtual void prepare(colorPrintfModule_t* colorPrintf_p,
+                       colorPrintfModuleVA_t* colorPrintfVA_p) override;
 
-	CUarmRobot* FindRobot(Robot* robot = NULL, bool avalible = true);
+  // compiler only
+  virtual FunctionData** getFunctions(unsigned int* count_functions) override;
+  virtual AxisData** getAxis(unsigned int* count_axis) override;
+  virtual void* writePC(unsigned int* buffer_length) override;
 
-public:
-	static CUarmRobotModule* CreateModule();
+  // intepreter - devices
+  virtual int init() override;
+  virtual Robot* robotRequire() override;
+  virtual void robotFree(Robot* robot) override;
+  virtual void final() override;
 
-	// init
-	virtual const struct ModuleInfo& getModuleInfo() override;
-	virtual void prepare(colorPrintfModule_t* colorPrintf_p,
-		colorPrintfModuleVA_t* colorPrintfVA_p) override;
+  // intepreter - program & lib
+  virtual void readPC(void* buffer, unsigned int buffer_length) override {}
 
-	// compiler only
-	virtual FunctionData** getFunctions(unsigned int* count_functions) override;
-	virtual AxisData** getAxis(unsigned int* count_axis) override;
-	virtual void* writePC(unsigned int* buffer_length) override;
+  // intepreter - program
+  virtual int startProgram(int uniq_index) override { return 0; }
 
-	// intepreter - devices
-	virtual int init() override;
-	virtual Robot* robotRequire() override;
-	virtual void robotFree(Robot* robot) override;
-	virtual void final() override;
+  virtual int endProgram(int uniq_index) override { return 0; }
 
-	// intepreter - program & lib
-	virtual void readPC(void *buffer, unsigned int buffer_length) override
-	{
-
-	}
-
-	// intepreter - program
-	virtual int startProgram(int uniq_index) override
-	{
-		return 0;
-	}
-
-	virtual int endProgram(int uniq_index) override
-	{
-		return 0;
-	}
-
-	// destructor
-	virtual void destroy() override;
-
+  // destructor
+  virtual void destroy() override;
 };
 
 using namespace UFACTORY::CC;
 
-class CUarmRobot : public Robot
-{
-private:
-	bool m_isAvalible;
-	bool m_locked;
-	bool m_Debug;
-	colorPrintfRobotVA_t* m_colorPrintf_p;
+class CUarmRobot : public Robot {
+ private:
+  bool m_isAvalible;
+  bool m_locked;
+  bool m_Debug;
+  colorPrintfRobotVA_t* m_colorPrintf_p;
 
-	std::string m_port_name;
+  std::string m_port_name;
 
-protected:
-	
-	gcroot<UArm^> m_Uarm;
+ protected:
+  gcroot<UArm ^> m_Uarm;
 
-	CUarmRobot(std::string port_name, bool isDebug);
-	CUarmRobot(std::string port_name, bool isDebug, int delay);
+  CUarmRobot(std::string port_name, bool isDebug);
+  CUarmRobot(std::string port_name, bool isDebug, int delay);
 
-	FunctionResult* RiseException()
-	{
-		return new FunctionResult(FunctionResult::EXCEPTION);
-	}
+  FunctionResult* RiseException() {
+    return new FunctionResult(FunctionResult::EXCEPTION);
+  }
 
-public:
-	void setAvalible(bool Value)
-	{
-		m_isAvalible = Value;
-	}
+ public:
+  void setAvalible(bool Value) { m_isAvalible = Value; }
 
-	void OnRobotFree()
-	{
-		m_Uarm->detachAll();
-	}
+  void OnRobotFree() { m_Uarm->detachAll(); }
 
-	bool IsAvalible()
-	{
-		return m_isAvalible;
-	}
+  bool IsAvalible() { return m_isAvalible; }
 
-	static CUarmRobot* CreateRobot(std::string port_name, bool isDebug);
+  static CUarmRobot* CreateRobot(std::string port_name, bool isDebug);
 
-	virtual void prepare(colorPrintfRobot_t* colorPrintf_p, colorPrintfRobotVA_t* colorPrintfVA_p) override;
+  virtual void prepare(colorPrintfRobot_t* colorPrintf_p,
+                       colorPrintfRobotVA_t* colorPrintfVA_p) override;
 
-	virtual FunctionResult* executeFunction(CommandMode mode, system_value command_index,
-		void** args) override;
+  virtual FunctionResult* executeFunction(CommandMode mode,
+                                          system_value command_index,
+                                          void** args) override;
 
-	virtual void axisControl(system_value axis_index, variable_value value) override;
+  virtual void axisControl(system_value axis_index,
+                           variable_value value) override;
 };

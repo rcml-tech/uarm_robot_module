@@ -6,40 +6,33 @@
 
 using namespace System;
 
-class CUtils
-{
-private:
-	SI_Error m_IniError;
-	std::string m_CongigPath;
-protected:
-	CSimpleIniA m_Ini;
+class CUtils {
+ private:
+  SI_Error m_IniError;
+  std::string m_CongigPath;
 
-public:
-	CUtils(std::string ConfigName);
+ protected:
+  CSimpleIniA m_Ini;
 
-	SI_Error getIniError()
-	{
-		return m_IniError;
-	}
+ public:
+  CUtils(std::string ConfigName);
 
-	std::string getConfigPath()
-	{
-		return m_CongigPath;
-	}
+  SI_Error getIniError() { return m_IniError; }
 
-	int getIniValueInt(std::string section_name, std::string key_name);
-	std::string getIniValueStr(std::string section_name, std::string key_name);
+  std::string getConfigPath() { return m_CongigPath; }
 
-	static std::string GetDLLPath();
+  int getIniValueInt(std::string section_name, std::string key_name);
+  std::string getIniValueStr(std::string section_name, std::string key_name);
 
-	///String tools
-	static std::string Str_To_StdStr(String^ Str);
-	static void printError(Exception^ E);
+  static std::string GetDLLPath();
 
-	///Check tools
-	static bool CheckAnlgeVal(int angle, int min = 0, int max = 180);
-	static bool CheckAnlgeVal(double angle, int min = 0, int max = 180)
-	{
-		return CheckAnlgeVal((int)angle, min, max);
-	}
+  /// String tools
+  static std::string Str_To_StdStr(String ^ Str);
+  static void printError(Exception ^ E);
+
+  /// Check tools
+  static bool CheckAnlgeVal(int angle, int min = 0, int max = 180);
+  static bool CheckAnlgeVal(double angle, int min = 0, int max = 180) {
+    return CheckAnlgeVal((int)angle, min, max);
+  }
 };
