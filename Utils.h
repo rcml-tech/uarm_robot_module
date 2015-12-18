@@ -35,4 +35,7 @@ class CUtils {
   static bool CheckAnlgeVal(double angle, int min = 0, int max = 180) {
     return CheckAnlgeVal((int)angle, min, max);
   }
+  static bool CheckServoIdx(double idx){
+	  return idx > 0 && idx <= 4;
+  }
 };

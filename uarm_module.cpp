@@ -144,6 +144,26 @@ void CUarmRobotModule::CreateFuntions() {
     // 11
     m_robot_functions[function_id] =
         new FunctionData(function_id + 1, 1, pt, "rotate_servo4");
+	++function_id;
+  }
+
+  {
+	  FunctionData::ParamTypes* pt = new FunctionData::ParamTypes[1];
+	  pt[0] = FunctionData::ParamTypes::FLOAT;
+
+	  // 12
+	  m_robot_functions[function_id] =
+		  new FunctionData(function_id + 1, 1, pt, "read_angles_with_offset");
+	  ++function_id;
+  }
+
+  {
+	  FunctionData::ParamTypes* pt = new FunctionData::ParamTypes[1];
+	  pt[0] = FunctionData::ParamTypes::FLOAT;
+
+	  // 13
+	  m_robot_functions[function_id] =
+		  new FunctionData(function_id + 1, 1, pt, "read_angles");
   }
 }
 
@@ -506,6 +526,40 @@ FunctionResult* CUarmRobot::executeFunction(CommandMode mode,
       }
       break;
     }
+	case 13: {
+		try {
+			double servo_num = *(double*)args[0];
+
+			if (!CUtils::CheckServoIdx(servo_num))
+				RiseException();
+
+			FunctionResult* Res =
+				new FunctionResult(FunctionResult::VALUE, m_Uarm->ReadAngleWithOffset((int)servo_num));
+			return Res;
+		}
+		catch (Exception ^ E) {
+			if (m_Debug) CUtils::printError(E);
+
+			return RiseException();
+		}
+	}
+	case 14: {
+		try {
+			double servo_num = *(double*)args[0];
+
+			if (!CUtils::CheckServoIdx(servo_num))
+				RiseException();
+
+			FunctionResult* Res =
+				new FunctionResult(FunctionResult::VALUE, m_Uarm->ReadAngle((int)servo_num));
+			return Res;
+		}
+		catch (Exception ^ E) {
+			if (m_Debug) CUtils::printError(E);
+
+			return RiseException();
+		}
+	}
   }
 
   return NULL;

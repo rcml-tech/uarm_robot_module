@@ -21,7 +21,7 @@ typedef std::list<CUarmRobot*> CAvalibleRobotsList;
 
 class CUarmRobotModule : public RobotModule {
  public:
-  const static unsigned int COUNT_FUNCTIONS = 12;
+  const static unsigned int COUNT_FUNCTIONS = 14;
   const static unsigned int COUNT_AXIS = 6;
   const static unsigned int LOCKED_IDX = 5;
 
