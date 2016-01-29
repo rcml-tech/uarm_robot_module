@@ -8,6 +8,8 @@
 
 using namespace System;
 
+#define IID "RCT.Uarm_robot_module_v100"
+
 PREFIX_FUNC_DLL RobotModule* getRobotModuleObject() {
   CUarmRobotModule* module = CUarmRobotModule::CreateModule();
   return (RobotModule*)module;
@@ -21,7 +23,7 @@ CUarmRobotModule::CUarmRobotModule()
   CreateFuntions();
   CreateAxis();
 
-  m_ModuleInfo.uid = "UIID";
+  m_ModuleInfo.uid = IID;
   m_ModuleInfo.digest = NULL;
   m_ModuleInfo.mode = ModuleInfo::PROD;
   m_ModuleInfo.version = BUILD_NUMBER;
