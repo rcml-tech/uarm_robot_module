@@ -10,7 +10,7 @@ using namespace System;
 
 #define IID "RCT.Uarm_robot_module_v100"
 
-PREFIX_FUNC_DLL unsigned short getRobotModuleApiVersion() { return ROBOT_MODULE_API_VERSION; };
+PREFIX_FUNC_DLL unsigned short getRobotModuleApiVersion() { return MODULE_API_VERSION; };
 PREFIX_FUNC_DLL RobotModule* getRobotModuleObject() {
   CUarmRobotModule* module = CUarmRobotModule::CreateModule();
   return (RobotModule*)module;
