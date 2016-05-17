@@ -36,7 +36,7 @@ namespace UARM{
 	public:
 		const static unsigned int COUNT_FUNCTIONS = 14;
 		static unsigned int COUNT_AXIS;
-		const static unsigned int LOCKED_IDX = 5;
+		const static unsigned int LOCKED_IDX = 8;
 
 	protected:
 		CRITICAL_SECTION m_Cs;

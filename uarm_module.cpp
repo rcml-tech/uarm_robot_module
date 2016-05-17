@@ -428,7 +428,7 @@ namespace UARM{
   	m_port_name(port_name),
   	servo_data(servo_data),
   	m_Debug(isDebug),
-  	m_locked(false) {
+  	m_locked(true) {
   	String ^ Str = gcnew String(port_name.c_str());
   	m_Uarm = gcnew UArm(Str);
   	m_Uarm->setDebug(m_Debug);
@@ -440,7 +440,7 @@ namespace UARM{
   	m_port_name(port_name),
   	servo_data(servo_data),
   	m_Debug(isDebug),
-  	m_locked(false) {
+  	m_locked(true) {
   	String ^ Str = gcnew String(port_name.c_str());
   	m_Uarm = gcnew UArm(Str, isDebug, delay);
   }
@@ -724,7 +724,7 @@ namespace UARM{
   		break;
   	}
   	case 8:{
-  		m_locked = (value != 0.0f);
+  		m_locked = (!value != 0.0f);
   		break;
   	}
   	default:
@@ -755,7 +755,7 @@ namespace UARM{
   		catch (...) {
   		}
   	}
-  	if (axis_index > 5){
+  	if (axis_index > 3 && axis_index < 7 ){
   		m_Uarm->Move(x, y, z);
   	}
   	printf("change axis value: %d = %f\n", axis_index, value);
