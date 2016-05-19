@@ -51,8 +51,8 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PreprocessorDefinitions>WIN32;IS_MODULE;CLI_SYSTEM;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <AdditionalIncludeDirectories>C:\Program Files (x86)\Jenkins\workspace\simpleini;C:\Program Files (x86)\Jenkins\workspace\module_headers\100;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsManaged>true</CompileAsManaged>
     </ClCompile>
@@ -64,8 +64,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PreprocessorDefinitions>WIN32;IS_MODULE;CLI_SYSTEM;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <AdditionalIncludeDirectories>C:\Program Files (x86)\Jenkins\workspace\simpleini;C:\Program Files (x86)\Jenkins\workspace\module_headers\100;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -82,16 +82,13 @@
     <ClInclude Include="..\..\..\RCML\module_headers-master\current\module.h" />
     <ClInclude Include="..\..\..\RCML\module_headers-master\current\robot_module.h" />
     <ClInclude Include="..\..\..\RCML\simpleini\SimpleIni.h" />
-    <ClInclude Include="Stdafx.h" />
+    <ClInclude Include="UarmError.h" />
     <ClInclude Include="uarm_module.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
-    <ClCompile Include="Stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="UarmError.cpp" />
     <ClCompile Include="uarm_module.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
