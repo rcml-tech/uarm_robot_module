@@ -11,7 +11,7 @@
 #include "build_number.h"
 #include "uarm_module.h"
 namespace UARM{
-	using namespace std;
+  using namespace std;
 	PREFIX_FUNC_DLL unsigned short getRobotModuleApiVersion() { return MODULE_API_VERSION; };
 	PREFIX_FUNC_DLL RobotModule* getRobotModuleObject() {
 		CUarmRobotModule* module = CUarmRobotModule::CreateModule();
@@ -23,7 +23,14 @@ namespace UARM{
 	#define SERVO_1 0
 	#define SERVO_2 1
 	#define SERVO_3 2
-	#define SERVO_4 3
+  #define SERVO_4 3
+
+  #define X 4
+  #define Y 5
+	#define Z 6
+
+  #define PUMP_AXIS 7
+  #define LINEAR_AXIS_GROUP 4
 
   unsigned int CUarmRobotModule::COUNT_AXIS = 9;
 
@@ -212,9 +219,9 @@ namespace UARM{
   		axis_names.push_back("servo2");
   		axis_names.push_back("servo3");
   		axis_names.push_back("servo4");
-  		axis_names.push_back("X");
-  		axis_names.push_back("Y");
-  		axis_names.push_back("Z");
+      axis_names.push_back("X");
+      axis_names.push_back("Y");
+      axis_names.push_back("Z");
 
   		int max = 0;
   		int min = 0;
@@ -228,14 +235,14 @@ namespace UARM{
 
   			GET_INT_INI_VALUE(min, "min")
   				GET_INT_INI_VALUE(max, "max")
-  				if (min < 0 || min > 180) {
+  				if (min < -180 || min > 180) {
   					char buff[1024];
-  					sprintf_s(buff, "Wrong min limit '%d', should be in borders [0,180]", min);
+  					sprintf_s(buff, "Wrong min limit '%d', should be in borders [-180,180]", min);
   					_error->append(new UarmError(buff));
   				}
-  			if (max < 0 || max > 180) {
+  			if (max < -180 || max > 180) {
   				char buff[1024];
-  				sprintf_s(buff, "Wrong max limit '%d', should be in borders [0,180]", max);
+  				sprintf_s(buff, "Wrong max limit '%d', should be in borders [-180,180]", max);
   				_error->append(new UarmError(buff));
   			}
   			if (max < min) {
@@ -387,7 +394,6 @@ namespace UARM{
   			}
   		}
   		LeaveCriticalSection(&m_Cs);
-
   	}
   	catch (...) {
   		LeaveCriticalSection(&m_Cs);
@@ -450,6 +456,9 @@ namespace UARM{
   	m_colorPrintf_p = colorPrintfVA_p;
   	m_Uarm->attachAll();
   	//   Записываем начальное положение серв
+    servo_data[X].current_position = m_Uarm->findX();
+    servo_data[Y].current_position = m_Uarm->findY();
+    servo_data[Z].current_position = m_Uarm->findZ();
   }
 
   FunctionResult* CUarmRobot::executeFunction(CommandMode mode,
@@ -680,85 +689,53 @@ namespace UARM{
   }
 
   void CUarmRobot::axisControl(system_value axis_index, variable_value value) {
-  	if (axis_index != CUarmRobotModule::LOCKED_IDX && m_locked) return;
-
-  	variable_value th1(0), th2(0), th3(0), th4(0), x(0), y(0), z(0);
-
-  	switch (axis_index) {
-  	case 0:
-  		th1 = value;
-  		break;
-  	case 1:
-  		th2 = value;
-  		break;
-  	case 2:
-  		th3 = value;
-  		break;
-  	case 3:
-  		th4 = value;
-  		break;
-  	case 4: {
-  		x = value;
-  		break;
-  	}
-  	case 5:{
-  		y = value;
-  		break;
-  	}
-  	case 6:{
-  		z = value;
-  		break;
-  	}
-  	case 7:{
-  		try {
-  			if (value == 1)
-  				m_Uarm->PumpON();
-  			else
-  				m_Uarm->PumpOFF();
-  		}
-  		catch (Exception ^ E) {
-  			if (m_Debug) CUtils::printError(E);
-  		}
-  		catch (...) {
-  		}
-  		break;
-  	}
-  	case 8:{
-  		m_locked = (!value != 0.0f);
-  		break;
-  	}
-  	default:
-  		break;
-  	}
-
-  	if (axis_index < 4) {
-  		try {
-  			if (servo_data[axis_index].increment){
-  				system_value test_value = servo_data[axis_index].current_position + value;
-  				if (test_value < servo_data[axis_index]._min ||
-  					test_value > servo_data[axis_index]._max) {
-  					printf("Axis '%d' limit error\n", axis_index);
-  					return;
-  				}
-  				servo_data[axis_index].current_position = test_value;
-
-  				th1 = (system_value)servo_data[SERVO_1].current_position;
-  				th2 = (system_value)servo_data[SERVO_2].current_position;
-  				th3 = (system_value)servo_data[SERVO_3].current_position;
-  				th4 = (system_value)servo_data[SERVO_4].current_position;
-  			}
-  			m_Uarm->writeAngles((double)th1, (double)th2, (double)th3, (double)th4);
-  		}
-  		catch (Exception ^ E) {
-  			if (m_Debug) CUtils::printError(E);
-  		}
-  		catch (...) {
-  		}
-  	}
-  	if (axis_index > 3 && axis_index < 7 ){
-  		m_Uarm->Move(x, y, z);
-  	}
-  	printf("change axis value: %d = %f\n", axis_index, value);
+    if (axis_index != CUarmRobotModule::LOCKED_IDX && m_locked) return;
+    if (axis_index == CUarmRobotModule::LOCKED_IDX){
+      m_locked = (!value != 0.0f);
+    } else if (axis_index == PUMP_AXIS){
+      try {
+        if (value == 1)
+          m_Uarm->PumpON();
+        else
+          m_Uarm->PumpOFF();
+      }
+      catch (Exception ^ E) {
+        if (m_Debug) CUtils::printError(E);
+      }
+      catch (...) {
+      }
+    } else if (axis_index < PUMP_AXIS) {
+      if (servo_data[axis_index].increment){
+        system_value test_value = servo_data[axis_index].current_position + value;
+        if (test_value < servo_data[axis_index]._min ||
+            test_value > servo_data[axis_index]._max) {
+          printf("Axis '%d' limit error\n", axis_index);
+          return;
+        }
+        servo_data[axis_index].current_position = test_value;
+      } else {
+        servo_data[axis_index].current_position = value;
+      }
+      try {
+        if (axis_index < LINEAR_AXIS_GROUP) {
+          double th1 = servo_data[SERVO_1].current_position;
+          double th2 = servo_data[SERVO_2].current_position;
+          double th3 = servo_data[SERVO_3].current_position;
+          double th4 = servo_data[SERVO_4].current_position;
+          m_Uarm->writeAngles(th1, th2, th3, th4);
+        } else {
+          double current_x = servo_data[X].current_position;
+          double current_y = servo_data[Y].current_position;
+          double current_z = servo_data[Z].current_position;
+          m_Uarm->Move(current_x, current_y, current_z);
+        }
+      }
+      catch (Exception ^ E) {
+        if (m_Debug) CUtils::printError(E);
+      }
+      catch (...) {
+      }
+    }
   }
 };
 
