@@ -59,6 +59,7 @@ class CUarmRobotModule : public RobotModule {
   void CreateFuntions();
 
   CUarmRobot* FindRobot(Robot* robot = NULL, bool avalible = true);
+  void colorPrintf(ConsoleColor colors, const char *mask, ...);
 
  public:
   static CUarmRobotModule* CreateModule();
@@ -103,6 +104,17 @@ class CUarmRobot : public Robot {
   string m_port_name;
   vector<ServoData> servo_data;
 
+  enum AxesIndexes {
+    SERVO_1 = 0,  
+    SERVO_2 = 1,  
+    SERVO_3 = 2,  
+    SERVO_4 = 3,  
+    X = 4,  
+    Y = 5,  
+    Z = 6,  
+    PUMP_AXIS = 7  
+  };
+
  protected:
   gcroot<UArm ^> m_Uarm;
 
@@ -113,6 +125,7 @@ class CUarmRobot : public Robot {
   FunctionResult* RiseException() {
     return new FunctionResult(FunctionResult::EXCEPTION);
   }
+  void colorPrintf(ConsoleColor colors, const char *mask, ...);
 
  public:
   void setAvalible(bool Value) { m_isAvalible = Value; }
