@@ -5,25 +5,38 @@
 
 #pragma once
 
-#include "Stdafx.h"
-
-#include <stdio.h>
+namespace UARM {
+using namespace std;
 #include "module.h"
 #include "robot_module.h"
-#include <list>
 
-#include <vcclr.h>
+struct ServoData {
+  int servo_number;
+  int _min;
+  int _max;
+  double start_position;
+  bool increment;
+  double current_position;
+  ServoData(int number, int _min, int _max, double start_position,
+            bool increment);
+};
 
-#include <Windows.h>
+struct AxisMinMax {
+  int _min;
+  int _max;
+  string name;
+  AxisMinMax(int _min, int _max, string name)
+      : _min(_min), _max(_max), name(name) {}
+};
 
 class CUarmRobot;
-typedef std::list<CUarmRobot*> CAvalibleRobotsList;
+typedef list<CUarmRobot*> CAvalibleRobotsList;
 
 class CUarmRobotModule : public RobotModule {
  public:
   const static unsigned int COUNT_FUNCTIONS = 14;
-  const static unsigned int COUNT_AXIS = 6;
-  const static unsigned int LOCKED_IDX = 5;
+  static unsigned int COUNT_AXIS;
+  const static unsigned int LOCKED_IDX = 8;
 
  protected:
   CRITICAL_SECTION m_Cs;
@@ -38,13 +51,15 @@ class CUarmRobotModule : public RobotModule {
   CAvalibleRobotsList m_avalible_robots;
 
   bool m_Debug;
+  bool is_prepare_failed;
+  vector<AxisMinMax> axis_settings;
 
   CUarmRobotModule();
 
   void CreateFuntions();
-  void CreateAxis();
 
   CUarmRobot* FindRobot(Robot* robot = NULL, bool avalible = true);
+  void colorPrintf(ConsoleColor colors, const char *mask, ...);
 
  public:
   static CUarmRobotModule* CreateModule();
@@ -86,17 +101,31 @@ class CUarmRobot : public Robot {
   bool m_Debug;
   colorPrintfRobotVA_t* m_colorPrintf_p;
 
-  std::string m_port_name;
+  string m_port_name;
+  vector<ServoData> servo_data;
+
+  enum AxesIndexes {
+    SERVO_1 = 0,  
+    SERVO_2 = 1,  
+    SERVO_3 = 2,  
+    SERVO_4 = 3,  
+    X = 4,  
+    Y = 5,  
+    Z = 6,  
+    PUMP_AXIS = 7  
+  };
 
  protected:
   gcroot<UArm ^> m_Uarm;
 
-  CUarmRobot(std::string port_name, bool isDebug);
-  CUarmRobot(std::string port_name, bool isDebug, int delay);
+  CUarmRobot(string port_name, vector<ServoData> servo_data, bool isDebug);
+  CUarmRobot(string port_name, vector<ServoData> servo_data, bool isDebug,
+             int delay);
 
   FunctionResult* RiseException() {
     return new FunctionResult(FunctionResult::EXCEPTION);
   }
+  void colorPrintf(ConsoleColor colors, const char *mask, ...);
 
  public:
   void setAvalible(bool Value) { m_isAvalible = Value; }
@@ -105,7 +134,8 @@ class CUarmRobot : public Robot {
 
   bool IsAvalible() { return m_isAvalible; }
 
-  static CUarmRobot* CreateRobot(std::string port_name, bool isDebug);
+  static CUarmRobot* CreateRobot(string port_name, vector<ServoData> servo_data,
+                                 bool isDebug);
 
   virtual void prepare(colorPrintfRobot_t* colorPrintf_p,
                        colorPrintfRobotVA_t* colorPrintfVA_p) override;
@@ -117,3 +147,4 @@ class CUarmRobot : public Robot {
   virtual void axisControl(system_value axis_index,
                            variable_value value) override;
 };
+}

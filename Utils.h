@@ -1,33 +1,31 @@
 #pragma once
-#include "Stdafx.h"
 
-#include "SimpleIni.h"
 #include <string>
-
+#include "SimpleIni.h"
 using namespace System;
 
 class CUtils {
  private:
   SI_Error m_IniError;
-  std::string m_CongigPath;
+  ::std::string m_CongigPath;
 
  protected:
   CSimpleIniA m_Ini;
 
  public:
-  CUtils(std::string ConfigName);
+	 explicit CUtils(std::string ConfigName);
 
   SI_Error getIniError() { return m_IniError; }
 
-  std::string getConfigPath() { return m_CongigPath; }
+  ::std::string getConfigPath() { return m_CongigPath; }
 
-  int getIniValueInt(std::string section_name, std::string key_name);
-  std::string getIniValueStr(std::string section_name, std::string key_name);
+  int getIniValueInt(::std::string section_name, ::std::string key_name);
+  ::std::string getIniValueStr(::std::string section_name, ::std::string key_name);
 
-  static std::string GetDLLPath();
+  static ::std::string GetDLLPath();
 
   /// String tools
-  static std::string Str_To_StdStr(String ^ Str);
+  static ::std::string Str_To_StdStr(String ^ Str);
   static void printError(Exception ^ E);
 
   /// Check tools

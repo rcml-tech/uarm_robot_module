@@ -1,25 +1,39 @@
-#include "Stdafx.h"
+#include <stdio.h>
+#include <vector>
+#include <string>
+#include <list>
+#include <vcclr.h>
+#include <Windows.h>
+#include <vector>
 
+#include "UarmError.h"
+#include "Utils.h"
 #include "build_number.h"
 #include "uarm_module.h"
-#include <string>
-
-#include "Utils.h"
-
-using namespace System;
-
+namespace UARM {
+using namespace std;
+PREFIX_FUNC_DLL unsigned short getRobotModuleApiVersion() {
+  return MODULE_API_VERSION;
+};
 PREFIX_FUNC_DLL RobotModule* getRobotModuleObject() {
   CUarmRobotModule* module = CUarmRobotModule::CreateModule();
   return (RobotModule*)module;
 }
 
+#define IID "RCT.Uarm_robot_module_v100"
+
+unsigned int CUarmRobotModule::COUNT_AXIS = 9;
+
 // UarmRobotModule
 //////////////////////////
 CUarmRobotModule::CUarmRobotModule()
-    : m_robot_functions(NULL), m_robot_axis(NULL) {
+    : m_colorPrintf_p(NULL),
+      m_robot_functions(NULL),
+      m_robot_axis(NULL),
+      m_Debug(false),
+      is_prepare_failed(false) {
   InitializeCriticalSection(&m_Cs);
   CreateFuntions();
-  CreateAxis();
 
   m_ModuleInfo.uid = "UIID";
   m_ModuleInfo.digest = NULL;
@@ -32,7 +46,7 @@ CUarmRobotModule* CUarmRobotModule::CreateModule() {
 }
 
 void CUarmRobotModule::CreateFuntions() {
-  m_robot_functions = new FunctionData*[COUNT_FUNCTIONS];
+  m_robot_functions = new FunctionData* [COUNT_FUNCTIONS];
   unsigned int function_id = 0;
 
   {
@@ -144,60 +158,166 @@ void CUarmRobotModule::CreateFuntions() {
     // 11
     m_robot_functions[function_id] =
         new FunctionData(function_id + 1, 1, pt, "rotate_servo4");
-	++function_id;
+    ++function_id;
   }
 
   {
-	  FunctionData::ParamTypes* pt = new FunctionData::ParamTypes[1];
-	  pt[0] = FunctionData::ParamTypes::FLOAT;
+    FunctionData::ParamTypes* pt = new FunctionData::ParamTypes[1];
+    pt[0] = FunctionData::ParamTypes::FLOAT;
 
-	  // 12
-	  m_robot_functions[function_id] =
-		  new FunctionData(function_id + 1, 1, pt, "read_angle_with_offset");
-	  ++function_id;
+    // 12
+    m_robot_functions[function_id] =
+        new FunctionData(function_id + 1, 1, pt, "read_angle_with_offset");
+    ++function_id;
   }
 
   {
-	  FunctionData::ParamTypes* pt = new FunctionData::ParamTypes[1];
-	  pt[0] = FunctionData::ParamTypes::FLOAT;
+    FunctionData::ParamTypes* pt = new FunctionData::ParamTypes[1];
+    pt[0] = FunctionData::ParamTypes::FLOAT;
 
-	  // 13
-	  m_robot_functions[function_id] =
-		  new FunctionData(function_id + 1, 1, pt, "read_angle");
+    // 13
+    m_robot_functions[function_id] =
+        new FunctionData(function_id + 1, 1, pt, "read_angle");
   }
-}
-
-void CUarmRobotModule::CreateAxis() {
-  m_robot_axis = new AxisData*[COUNT_AXIS];
-
-  unsigned int axis_id = 0;
-
-  m_robot_axis[axis_id] = new AxisData(axis_id, 180, 0, "servo1");
-  axis_id++;
-
-  m_robot_axis[axis_id] = new AxisData(axis_id, 180, 0, "servo2");
-  axis_id++;
-
-  m_robot_axis[axis_id] = new AxisData(axis_id, 180, 0, "servo3");
-  axis_id++;
-
-  m_robot_axis[axis_id] = new AxisData(axis_id, 180, 0, "servo4");
-  axis_id++;
-
-  m_robot_axis[axis_id] = new AxisData(axis_id, 1, 0, "pump");
-  axis_id++;
-
-  m_robot_axis[axis_id] = new AxisData(axis_id, 180, 0, "locked");
-  axis_id++;
 }
 
 const struct ModuleInfo& CUarmRobotModule::getModuleInfo() {
   return m_ModuleInfo;
 }
 
+#define GET_INT_INI_VALUE(dest, key)                         \
+  try {                                                      \
+    dest = Utils.getIniValueInt(axis_names[i].c_str(), key); \
+  } catch (UarmError * e) {                                  \
+    _error->append(e);                                       \
+  }
+
 void CUarmRobotModule::prepare(colorPrintfModule_t* colorPrintf_p,
                                colorPrintfModuleVA_t* colorPrintfVA_p) {
   m_colorPrintf_p = colorPrintfVA_p;
+  CUtils Utils("config.ini");
+
+  if (Utils.getIniError() > 0) {
+    colorPrintf( ConsoleColor(ConsoleColor::red), "Can't load '%s' file!\n", Utils.getConfigPath().c_str());
+    is_prepare_failed = true;
+    return;
+  }
+
+  try {
+    int count_robots = Utils.getIniValueInt("main", "count_robots");
+    m_Debug = Utils.getIniValueInt("main", "is_debug") != 0;
+
+    vector<string> axis_names;
+    vector<ServoData> servo_data;
+    axis_names.push_back("servo1");
+    axis_names.push_back("servo2");
+    axis_names.push_back("servo3");
+    axis_names.push_back("servo4");
+    axis_names.push_back("X");
+    axis_names.push_back("Y");
+    axis_names.push_back("Z");
+
+    int max = 0;
+    int min = 0;
+    int low = 0;
+    int top = 0;
+    bool increment = true;
+    double start_position = 0;
+    UarmError* axis_errors = new UarmError();
+    for (int i = 0; i < axis_names.size(); ++i) {
+      UarmError* _error = new UarmError();
+
+      GET_INT_INI_VALUE(min, "min")
+      GET_INT_INI_VALUE(max, "max")
+      if (min < -180 || min > 180) {
+        char buff[1024];
+        sprintf_s(buff, "Wrong min limit '%d', should be in borders [-180,180]",
+                  min);
+        _error->append(new UarmError(buff));
+      }
+      if (max < -180 || max > 180) {
+        char buff[1024];
+        sprintf_s(buff, "Wrong max limit '%d', should be in borders [-180,180]",
+                  max);
+        _error->append(new UarmError(buff));
+      }
+      if (max < min) {
+        _error->append(new UarmError("min bigger than max"));
+      }
+      GET_INT_INI_VALUE(increment, "increment")
+      if (increment) {
+        GET_INT_INI_VALUE(low, "low_control_value")
+        GET_INT_INI_VALUE(top, "top_control_value")
+        if (top < low) {
+          _error->append(
+              new UarmError("low_control_value bigger than top_control_value"));
+        }
+      }
+      GET_INT_INI_VALUE(start_position, "start_position")
+
+      if (!_error->isEmpty()) {
+        char buff[1024];
+        sprintf_s(buff, "Axis '%s' error: %s", axis_names[i].c_str(),
+                  _error->emit().c_str());
+        axis_errors->append(new UarmError(buff));
+        continue;
+      } else {
+        delete _error;
+      }
+
+      if (increment) {
+        axis_settings.push_back(AxisMinMax(low, top, axis_names[i]));
+      } else {
+        axis_settings.push_back(AxisMinMax(min, max, axis_names[i]));
+      }
+      servo_data.push_back(ServoData(i, min, max, start_position, increment));
+    }
+
+    if (!axis_errors->isEmpty()) {
+      throw axis_errors;
+    } else {
+      delete axis_errors;
+    }
+    axis_settings.push_back(AxisMinMax(0, 1, "pump"));
+    axis_settings.push_back(AxisMinMax(0, 1, "locked"));
+
+    m_robot_axis = new AxisData* [COUNT_AXIS];
+
+    for (int axis_id = 0; axis_id < axis_settings.size(); ++axis_id) {
+      m_robot_axis[axis_id] = new AxisData(axis_id, axis_settings[axis_id]._max,
+                                           axis_settings[axis_id]._min,
+                                           axis_settings[axis_id].name.c_str());
+    }
+
+    for (int i(0); i < count_robots; i++) {
+      string robot_section = "robot_port_" + to_string(i);
+      string robot_port = Utils.getIniValueStr("main", robot_section);
+
+      try {
+        CUarmRobot* Robot =
+            CUarmRobot::CreateRobot(robot_port, servo_data, m_Debug);
+        m_avalible_robots.push_back(Robot);
+      } catch (System::Exception ^ e) {
+        String ^ Str = e->ToString();
+        string ErrStr("cant't create Robot (idx:");
+        ErrStr += to_string(i);
+        ErrStr += " port:";
+        ErrStr += robot_port;
+        ErrStr += ")";
+        ErrStr += "\n";
+        ErrStr += "\n";
+
+        ErrStr += CUtils::Str_To_StdStr(Str);
+
+        colorPrintf(ConsoleColor(ConsoleColor::red), ErrStr.c_str());
+      }
+    }
+  } catch (UarmError* e) {
+    is_prepare_failed = true;
+    COUNT_AXIS = 0;
+    colorPrintf(ConsoleColor(ConsoleColor::red), "Axis Errors:\n %s ", e->emit().c_str());
+    delete e;
+  }
 }
 
 FunctionData** CUarmRobotModule::getFunctions(unsigned int* count_functions) {
@@ -207,6 +327,9 @@ FunctionData** CUarmRobotModule::getFunctions(unsigned int* count_functions) {
 
 AxisData** CUarmRobotModule::getAxis(unsigned int* count_axis) {
   *count_axis = COUNT_AXIS;
+  if (!m_robot_axis) {
+    *count_axis = 0;
+  }
   return m_robot_axis;
 }
 
@@ -231,50 +354,23 @@ void CUarmRobotModule::destroy() {
   delete this;
 }
 
-CUarmRobot* CUarmRobot::CreateRobot(std::string port_name, bool isDebug) {
-  CUarmRobot* Robot = new CUarmRobot(port_name, isDebug);
+CUarmRobot* CUarmRobot::CreateRobot(string port_name,
+                                    vector<ServoData> servo_data,
+                                    bool isDebug) {
+  CUarmRobot* Robot = new CUarmRobot(port_name, servo_data, isDebug);
   return Robot;
 }
 
-int CUarmRobotModule::init() {
-  CUtils Utils("config.ini");
+ServoData::ServoData(int number, int _min, int _max, double start_position,
+                     bool increment)
+    : servo_number(number),
+      _min(_min),
+      _max(_max),
+      start_position(0),
+      increment(increment),
+      current_position(start_position){};
 
-  if (Utils.getIniError() > 0) {
-    printf("Can't load '%s' file!\n", Utils.getConfigPath());
-    return 1;
-  }
-  try {
-    int count_robots = Utils.getIniValueInt("main", "count_robots");
-    m_Debug = Utils.getIniValueInt("main", "is_debug") != 0;
-
-    for (int i(0); i < count_robots; i++) {
-      std::string robot_section = "robot_port_" + std::to_string(i);
-      std::string robot_port = Utils.getIniValueStr("main", robot_section);
-
-      try {
-        CUarmRobot* Robot = CUarmRobot::CreateRobot(robot_port, m_Debug);
-        m_avalible_robots.push_back(Robot);
-      } catch (System::Exception ^ e) {
-        String ^ Str = e->ToString();
-        std::string ErrStr("cant't create Robot (idx:");
-        ErrStr += std::to_string(i);
-        ErrStr += " port:";
-        ErrStr += robot_port;
-        ErrStr += ")";
-        ErrStr += "\n";
-        ErrStr += "\n";
-
-        ErrStr += CUtils::Str_To_StdStr(Str);
-
-        printf(ErrStr.c_str());
-      }
-    }
-  } catch (...) {
-    return 1;
-  }
-
-  return 0;
-}
+int CUarmRobotModule::init() { return is_prepare_failed ? 1 : 0; }
 
 CUarmRobot* CUarmRobotModule::FindRobot(Robot* robot /*= NULL*/,
                                         bool avalible /*= true*/) {
@@ -292,7 +388,6 @@ CUarmRobot* CUarmRobotModule::FindRobot(Robot* robot /*= NULL*/,
       }
     }
     LeaveCriticalSection(&m_Cs);
-
   } catch (...) {
     LeaveCriticalSection(&m_Cs);
   }
@@ -325,9 +420,12 @@ void CUarmRobotModule::final() {
 
 // CUarmRobot
 /////////////////////////////////////////
-CUarmRobot::CUarmRobot(std::string port_name, bool isDebug)
-    : m_isAvalible(true),
+CUarmRobot::CUarmRobot(string port_name, vector<ServoData> servo_data,
+                       bool isDebug)
+    : m_colorPrintf_p(NULL),
+      m_isAvalible(true),
       m_port_name(port_name),
+      servo_data(servo_data),
       m_Debug(isDebug),
       m_locked(false) {
   String ^ Str = gcnew String(port_name.c_str());
@@ -335,9 +433,12 @@ CUarmRobot::CUarmRobot(std::string port_name, bool isDebug)
   m_Uarm->setDebug(m_Debug);
 }
 
-CUarmRobot::CUarmRobot(std::string port_name, bool isDebug, int delay)
-    : m_isAvalible(true),
+CUarmRobot::CUarmRobot(string port_name, vector<ServoData> servo_data,
+                       bool isDebug, int delay)
+    : m_colorPrintf_p(NULL),
+      m_isAvalible(true),
       m_port_name(port_name),
+      servo_data(servo_data),
       m_Debug(isDebug),
       m_locked(false) {
   String ^ Str = gcnew String(port_name.c_str());
@@ -348,6 +449,10 @@ void CUarmRobot::prepare(colorPrintfRobot_t* colorPrintf_p,
                          colorPrintfRobotVA_t* colorPrintfVA_p) {
   m_colorPrintf_p = colorPrintfVA_p;
   m_Uarm->attachAll();
+  //   Записываем начальное положение серв
+  servo_data[AxesIndexes::X].current_position = m_Uarm->findX();
+  servo_data[AxesIndexes::Y].current_position = m_Uarm->findY();
+  servo_data[AxesIndexes::Z].current_position = m_Uarm->findZ();
 }
 
 FunctionResult* CUarmRobot::executeFunction(CommandMode mode,
@@ -526,40 +631,36 @@ FunctionResult* CUarmRobot::executeFunction(CommandMode mode,
       }
       break;
     }
-	case 13: {
-		try {
-			double servo_num = *(double*)args[0];
+    case 13: {
+      try {
+        double servo_num = *(double*)args[0];
 
-			if (!CUtils::CheckServoIdx(servo_num))
-				return RiseException();
+        if (!CUtils::CheckServoIdx(servo_num)) return RiseException();
 
-			FunctionResult* Res =
-				new FunctionResult(FunctionResult::VALUE, m_Uarm->ReadAngleWithOffset((int)servo_num));
-			return Res;
-		}
-		catch (Exception ^ E) {
-			if (m_Debug) CUtils::printError(E);
+        FunctionResult* Res = new FunctionResult(
+            FunctionResult::VALUE, m_Uarm->ReadAngleWithOffset((int)servo_num));
+        return Res;
+      } catch (Exception ^ E) {
+        if (m_Debug) CUtils::printError(E);
 
-			return RiseException();
-		}
-	}
-	case 14: {
-		try {
-			double servo_num = *(double*)args[0];
+        return RiseException();
+      }
+    }
+    case 14: {
+      try {
+        double servo_num = *(double*)args[0];
 
-			if (!CUtils::CheckServoIdx(servo_num))
-				return RiseException();
+        if (!CUtils::CheckServoIdx(servo_num)) return RiseException();
 
-			FunctionResult* Res =
-				new FunctionResult(FunctionResult::VALUE, m_Uarm->ReadAngle((int)servo_num));
-			return Res;
-		}
-		catch (Exception ^ E) {
-			if (m_Debug) CUtils::printError(E);
+        FunctionResult* Res = new FunctionResult(
+            FunctionResult::VALUE, m_Uarm->ReadAngle((int)servo_num));
+        return Res;
+      } catch (Exception ^ E) {
+        if (m_Debug) CUtils::printError(E);
 
-			return RiseException();
-		}
-	}
+        return RiseException();
+      }
+    }
   }
 
   return NULL;
@@ -567,54 +668,66 @@ FunctionResult* CUarmRobot::executeFunction(CommandMode mode,
 
 void CUarmRobot::axisControl(system_value axis_index, variable_value value) {
   if (axis_index != CUarmRobotModule::LOCKED_IDX && m_locked) return;
-
-  variable_value th1(0), th2(0), th3(0), th4(0);
-
-  switch (axis_index) {
-    case 0:
-      th1 = value;
-      break;
-
-    case 1:
-      th2 = value;
-      break;
-
-    case 2:
-      th3 = value;
-      break;
-
-    case 3:
-      th4 = value;
-      break;
-
-    case 4: {
-      try {
-        if (value == 1)
-          m_Uarm->PumpON();
-        else
-          m_Uarm->PumpOFF();
-      } catch (Exception ^ E) {
-        if (m_Debug) CUtils::printError(E);
-      } catch (...) {
-      }
-
-      break;
-    }
-
-    case 5:
-      m_locked = (value != 0.0f);
-      break;
-
-    default:
-      break;
-  }
-
-  if (axis_index < 4) {
+  if (axis_index == CUarmRobotModule::LOCKED_IDX) {
+    m_locked = (value != 0.0f);
+  } else if (axis_index == PUMP_AXIS) {
     try {
-      m_Uarm->writeAngles(th1, th2, th3, th4);
+      if (value == 1)
+        m_Uarm->PumpON();
+      else
+        m_Uarm->PumpOFF();
+    } catch (Exception ^ E) {
+      if (m_Debug) CUtils::printError(E);
+    } catch (...) {
+    }
+  } else if (axis_index < PUMP_AXIS) {
+    if (servo_data[axis_index].increment) {
+      system_value test_value = servo_data[axis_index].current_position + value;
+      if (test_value < servo_data[axis_index]._min ||
+          test_value > servo_data[axis_index]._max) {
+        colorPrintf(ConsoleColor(ConsoleColor::red), "Axis '%d' limit error\n", axis_index);
+        return;
+      }
+      servo_data[axis_index].current_position = test_value;
+    } else {
+      servo_data[axis_index].current_position = value;
+    }
+    try {
+      const int linear_axis_group = 4;
+      if (axis_index < linear_axis_group) {
+        double th1 = servo_data[AxesIndexes::SERVO_1].current_position;
+        double th2 = servo_data[AxesIndexes::SERVO_2].current_position;
+        double th3 = servo_data[AxesIndexes::SERVO_3].current_position;
+        double th4 = servo_data[AxesIndexes::SERVO_4].current_position;
+        m_Uarm->writeAngles(th1, th2, th3, th4);
+      } else {
+		  double current_x = servo_data[AxesIndexes::X].current_position;
+        double current_y = servo_data[AxesIndexes::Y].current_position;
+        double current_z = servo_data[AxesIndexes::Z].current_position;
+        m_Uarm->Move(current_x, current_y, current_z);
+      }
     } catch (Exception ^ E) {
       if (m_Debug) CUtils::printError(E);
     } catch (...) {
     }
   }
 }
+
+void CUarmRobot::colorPrintf(ConsoleColor colors, const char *mask, ...) {
+  va_list args;
+  va_start(args, mask);
+  (*m_colorPrintf_p)(this, m_port_name.c_str(), colors, mask, args);
+  va_end(args);
+}
+
+void CUarmRobotModule::colorPrintf(ConsoleColor colors, const char *mask, ...) {
+  va_list args;
+  va_start(args, mask);
+  (*m_colorPrintf_p)(this, colors, mask, args);
+  va_end(args);
+}
+};
+
+
+
+

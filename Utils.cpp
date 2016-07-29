@@ -1,16 +1,16 @@
-#include "Stdafx.h"
 
-#include "Utils.h"
 #include <windows.h>
 #include <msclr\marshal_cppstd.h>
 
-using namespace System;
+#include "Utils.h"
 using namespace System::Reflection;
+
+#include "UarmError.h"
 
 // CUtils
 //////////////////////
 CUtils::CUtils(std::string ConfigName) {
-  std::string ConfigFullName(GetDLLPath() + "\\" + ConfigName);
+  ::std::string ConfigFullName(GetDLLPath() + "\\" + ConfigName);
   m_IniError = m_Ini.LoadFile(ConfigFullName.c_str());
 }
 
@@ -18,18 +18,19 @@ std::string CUtils::GetDLLPath() {
   auto assembly = Assembly::GetExecutingAssembly();
   String ^ path = IO::Path::GetDirectoryName(assembly->Location);
 
-  std::string Res = msclr::interop::marshal_as<std::string>(path);
+  ::std::string Res = msclr::interop::marshal_as<::std::string>(path);
 
   return Res;
 }
 
-std::string CUtils::getIniValueStr(std::string section_name,
-                                   std::string key_name) {
+::std::string CUtils::getIniValueStr(::std::string section_name,
+                                   ::std::string key_name) {
   const char* res(m_Ini.GetValue(section_name.c_str(), key_name.c_str(), NULL));
   if (!res) {
-    printf("Not specified value for \"%s\" in section \"%s\"!\n", key_name.c_str(),
-           section_name.c_str());
-    throw std::exception();
+    char buff[1024];
+    sprintf_s(buff, "Not specified value for \"%s\" in section \"%s\"!\n",
+                    key_name.c_str(), section_name.c_str());
+    throw new UarmError();
   }
 
   return std::string(res);
