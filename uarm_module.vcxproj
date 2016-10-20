@@ -53,7 +53,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;IS_MODULE;CLI_SYSTEM;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>C:\Program Files (x86)\Jenkins\workspace\simpleini;C:\Program Files (x86)\Jenkins\workspace\module_headers\100;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\libraries\public\module_headers\100;..\..\..\libraries\3rdparty\simpleini;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsManaged>true</CompileAsManaged>
     </ClCompile>
     <Link>
@@ -66,7 +66,7 @@
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;IS_MODULE;CLI_SYSTEM;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>C:\Program Files (x86)\Jenkins\workspace\simpleini;C:\Program Files (x86)\Jenkins\workspace\module_headers\100;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\libraries\public\module_headers\100;..\..\..\libraries\3rdparty\simpleini;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -79,9 +79,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\RCML\module_headers-master\current\module.h" />
-    <ClInclude Include="..\..\..\RCML\module_headers-master\current\robot_module.h" />
-    <ClInclude Include="..\..\..\RCML\simpleini\SimpleIni.h" />
     <ClInclude Include="UarmError.h" />
     <ClInclude Include="uarm_module.h" />
     <ClInclude Include="Utils.h" />
@@ -96,7 +93,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\module_robot_uarm_api\UArmForCSharp\UArmForCSharp.csproj">
+    <ProjectReference Include="..\..\..\libraries\3rdparty\module_robot_uarm_api\UArmForCSharp\UArmForCSharp.csproj">
       <Project>{92f8467f-0e90-4640-9ba2-4c0520832461}</Project>
     </ProjectReference>
   </ItemGroup>
