@@ -22,7 +22,7 @@ PREFIX_FUNC_DLL RobotModule* getRobotModuleObject() {
 
 #define IID "RCT.Uarm_robot_module_v100"
 
-unsigned int CUarmRobotModule::COUNT_AXIS = 9;
+unsigned int CUarmRobotModule::COUNT_AXIS = 0;
 
 // UarmRobotModule
 //////////////////////////
@@ -36,7 +36,7 @@ CUarmRobotModule::CUarmRobotModule()
   CreateFuntions();
 
   m_ModuleInfo.uid = IID;
-  m_ModuleInfo.digest = NULL;
+  m_ModuleInfo.digest = nullptr;
   m_ModuleInfo.mode = ModuleInfo::PROD;
   m_ModuleInfo.version = BUILD_NUMBER;
 }
@@ -281,6 +281,7 @@ void CUarmRobotModule::prepare(colorPrintfModule_t* colorPrintf_p,
     axis_settings.push_back(AxisMinMax(0, 1, "pump"));
     axis_settings.push_back(AxisMinMax(0, 1, "locked"));
 
+	COUNT_AXIS = 9;
     m_robot_axis = new AxisData* [COUNT_AXIS];
 
     for (int axis_id = 0; axis_id < axis_settings.size(); ++axis_id) {
